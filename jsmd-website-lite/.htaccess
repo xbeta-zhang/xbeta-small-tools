@@ -1,0 +1,10 @@
+# 设置默认字符集为UTF-8
+AddDefaultCharset UTF-8
+
+# 为Markdown文件设置正确的Content-Type
+AddType text/markdown .md
+
+# 确保UTF-8编码
+<FilesMatch "\.md$">
+    ForceType text/markdown; charset=utf-8
+</FilesMatch> 

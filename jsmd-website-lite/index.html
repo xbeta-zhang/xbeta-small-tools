@@ -1,0 +1,64 @@
+<!DOCTYPE html><html>
+<head>
+  <meta charset="UTF-8">
+  <title>JSMD Website Lite [zyxβ2507]</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
+  <style>
+  .container{max-width:1000px;padding:2em}
+  a:hover{color:red}</style>
+</head>
+<body>
+  <div class="container markdown-body" id="content">
+    Loading...
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  <script>
+    const md = window.markdownit();
+    
+    const convertLinks = text => text
+      .replace(/\[\[([^\]]+)\]\]/g, '[$1](/$1)')
+      .replace(/\[([^\]]+)\]\(([^)]+)\.md\)/g, '[$1](/$2)');
+    
+    const loadMarkdown = file => {
+      fetch(file)
+        .then(res => res.ok ? res.text() : "# 404 - Not Found")
+        .then(text => {
+          document.getElementById('content').innerHTML = md.render(convertLinks(text));
+          document.title = '🌐' + decodeURIComponent(file.replace('.md', '')) + '.M⬇️';
+          window.scrollTo(0, 0);
+        })
+        .catch(() => {
+          document.getElementById('content').innerHTML = `🚫 ${file} `;
+        });
+    };
+
+    const handleLinkClick = href => {
+      const path = href.startsWith('/') ? href : '/' + href.replace('.md', '');
+      history.pushState(null, '', path);
+      loadMarkdown(href.startsWith('/') ? href.substring(1) + '.md' : href);
+    };
+
+    const getFile = () => {
+      const path = window.location.pathname;
+      const fileName = path === '/' ? 'README' : path.substring(1);
+      return fileName + '.md';
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('click', e => {
+        if (e.target.tagName === 'A') {
+          const href = e.target.getAttribute('href');
+          if (href && (href.startsWith('/') || href.endsWith('.md'))) {
+            e.preventDefault();
+            handleLinkClick(href);
+          }
+        }
+      });
+    });
+
+    loadMarkdown(getFile());
+    window.addEventListener('popstate', () => loadMarkdown(getFile()));
+  </script>
+</body></html> 

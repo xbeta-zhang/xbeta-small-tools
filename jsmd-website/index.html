@@ -1,0 +1,94 @@
+<!DOCTYPE html><html>
+<head>
+  <meta charset="UTF-8">
+  <title>JSMD WebSite [zyxβ2507]</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
+  <style>
+    body { display: flex; margin: 0; height: 100vh; overflow: hidden; }
+    #sidebar-container { width: 300px; background: #eee; overflow-y: auto; height: 100vh; }
+    #sidebar-container.hidden, #sidebar-container.hidden #sidebar { width: 0; padding: 0; display: none; }
+    #sidebar { padding: 1em; }
+    #sidebar li { line-height: 1.6; margin: 0.3em 0; }
+    #sidebar h1, #sidebar h2 { margin: 1em 0 0.5em 0; }
+    #menu-button { position: fixed; width: 20px; height: 80px; border: none; z-index: 1000; background: rgba(0, 0, 255, 0.2); }
+    #menu-button:hover, a:hover { color: red; }
+    #content { padding: 2em; flex: 1; overflow-y: auto; height: 100vh; }
+    @media (max-width: 768px) { #sidebar-container { position: fixed; left: 0; top: 0; z-index: 1000; width: 100vw; } #sidebar-container:not(.hidden) ~ #content { display: none; } }
+    a { text-decoration: none; color: #06d; }
+  </style>
+</head>
+<body>
+  <div id="sidebar-container">
+    <div id="sidebar" class="markdown-body"></div>
+  </div>
+  <button id="menu-button">☰</button>
+  <div id="content" class="markdown-body">Loading...</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  <script>
+    const md = window.markdownit();
+    let sidebarHidden = window.innerWidth <= 768;
+    const savedState = localStorage.getItem('sidebarHidden');
+    if (savedState !== null) sidebarHidden = JSON.parse(savedState);
+    
+    const convertLinks = text => text
+      .replace(/\[\[([^\]]+)\]\]/g, '[$1](?$1)')
+      .replace(/\[([^\]]+)\]\(([^)]+)\.md\)/g, '[$1](?$2)');
+    
+    const updateSidebarState = () => {
+      document.getElementById('sidebar-container').classList.toggle('hidden', sidebarHidden);
+      document.getElementById('menu-button').textContent = sidebarHidden ? '>>' : '<<';
+      if (window.innerWidth > 768) localStorage.setItem('sidebarHidden', JSON.stringify(sidebarHidden));
+    };
+
+    const loadMarkdown = file => {
+      fetch(file)
+        .then(res => res.ok ? res.text() : "# 404 - Not Found")
+        .then(text => {
+          document.getElementById('content').innerHTML = md.render(convertLinks(text));
+          document.title = decodeURIComponent(file.replace('.md', '')) + ' 🌐ZYX';
+          document.getElementById('content').scrollTop = 0;
+        });
+    };
+
+    const handleLinkClick = href => {
+      const url = href.startsWith('?') ? href : '?' + href.replace('.md', '');
+      history.pushState(null, '', url);
+      loadMarkdown(href.startsWith('?') ? href.substring(1) + '.md' : href);
+      if (window.innerWidth <= 768 && !sidebarHidden) {
+        sidebarHidden = true;
+        updateSidebarState();
+      }
+    };
+
+    const getFile = () => {
+      const params = new URLSearchParams(window.location.search);
+      const firstParam = Array.from(params.keys())[0];
+      return firstParam ? firstParam + '.md' : 'README.md';
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('menu-button').addEventListener('click', () => {
+        sidebarHidden = !sidebarHidden;
+        updateSidebarState();
+      });
+      updateSidebarState();
+    });
+
+    fetch('_sidebar.md')
+      .then(res => res.text())
+      .then(text => {
+        document.getElementById('sidebar').innerHTML = md.render(convertLinks(text));
+        document.querySelectorAll('#sidebar a').forEach(link => {
+          link.addEventListener('click', e => {
+            e.preventDefault();
+            handleLinkClick(link.getAttribute('href'));
+          });
+        });
+      });
+
+    loadMarkdown(getFile());
+    window.addEventListener('popstate', () => loadMarkdown(getFile()));
+  </script>
+</body></html>
