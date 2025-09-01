@@ -6,9 +6,7 @@
 
 每个文件目录，就是一个独立的小工具。请仔细阅读每个文件目录中的README.md文件。
 
+## 更新历史
 
-2025-07-16，上海
-
-
-
-
+- 2025-07-16： just markdown website，极简的markdown静态网站，只需一个html/js。有两个版本，详见 [jsmd-website/README.md](jsmd-website/README.md) 和 [jsmd-websit-lite/README.md](jsmd-website-lite/README.md)
+- 2025-09-01： quick add text to daily note，快速添加文本内容到每日记录。详见 [quick-add/README.md](quick-add/README.md)
